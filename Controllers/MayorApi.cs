@@ -9,15 +9,24 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json;
 using Coflnet.Sky.Mayor.Attributes;
 using Coflnet.Sky.Mayor.Models;
+using Coflnet.Sky.Mayor.Services;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace Coflnet.Sky.Mayor.Controllers
-{ 
+{
     /// <summary>
     /// 
     /// </summary>
     [ApiController]
     public class MayorApiController : ControllerBase
-    { 
+    {
+        public MayorService mayorService;
+
+        public MayorApiController(MayorService mayorService)
+        {
+            this.mayorService = mayorService;
+        }
         /// <summary>
         /// Get the the current mayor
         /// </summary>
@@ -29,21 +38,15 @@ namespace Coflnet.Sky.Mayor.Controllers
         [ValidateModelState]
         [SwaggerOperation("MayorCurrentGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(ModelCandidate), description: "OK")]
-        public virtual IActionResult MayorCurrentGet()
+        public virtual async Task<ModelCandidate> MayorCurrentGet()
         {
+            var currentElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear());
+            return currentElection.Winner;
+        }
 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(ModelCandidate));
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400);
-            string exampleJson = null;
-            exampleJson = "{\n  \"name\" : \"name\",\n  \"perks\" : [ {\n    \"name\" : \"name\",\n    \"description\" : \"description\"\n  }, {\n    \"name\" : \"name\",\n    \"description\" : \"description\"\n  } ],\n  \"key\" : \"key\"\n}";
-            
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<ModelCandidate>(exampleJson)
-            : default(ModelCandidate);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+        private static int CurrentMinecraftYear()
+        {
+            return (int)((DateTime.Now - new DateTime(2019, 6, 13)).TotalDays / (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays + 1);
         }
 
         /// <summary>
@@ -57,20 +60,10 @@ namespace Coflnet.Sky.Mayor.Controllers
         [ValidateModelState]
         [SwaggerOperation("MayorLastGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(string), description: "OK")]
-        public virtual IActionResult MayorLastGet()
+        public async Task<string> MayorLastGet()
         {
-
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(string));
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400);
-            string exampleJson = null;
-            
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<string>(exampleJson)
-            : default(string);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            var lastElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear() - 1);
+            return lastElection.Winner.Name;
         }
 
         /// <summary>
@@ -96,7 +89,7 @@ namespace Coflnet.Sky.Mayor.Controllers
             // return StatusCode(404);
             string exampleJson = null;
             exampleJson = "[ \"\", \"\" ]";
-            
+
             var example = exampleJson != null
             ? JsonConvert.DeserializeObject<List<string>>(exampleJson)
             : default(List<string>);
@@ -116,23 +109,14 @@ namespace Coflnet.Sky.Mayor.Controllers
         [ValidateModelState]
         [SwaggerOperation("MayorNextGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(ModelCandidate), description: "OK")]
-        public virtual IActionResult MayorNextGet()
+        public virtual async Task<ModelCandidate> MayorNextGet()
         {
-
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(ModelCandidate));
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400);
-            //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(404);
-            string exampleJson = null;
-            exampleJson = "{\n  \"name\" : \"name\",\n  \"perks\" : [ {\n    \"name\" : \"name\",\n    \"description\" : \"description\"\n  }, {\n    \"name\" : \"name\",\n    \"description\" : \"description\"\n  } ],\n  \"key\" : \"key\"\n}";
-            
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<ModelCandidate>(exampleJson)
-            : default(ModelCandidate);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            var currentElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear());
+            if (currentElection == null)
+            {
+                return null;
+            }
+            return currentElection.Candidates.OrderByDescending(c => c.Votes).FirstOrDefault();
         }
     }
 }

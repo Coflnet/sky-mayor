@@ -10,6 +10,10 @@ using Coflnet.Sky.Mayor.Converters;
 
 namespace Coflnet.Sky.Mayor.Models
 { 
+    public class ElectionWinner : ModelCandidate
+    {
+        public Minister Minister { get; set; }
+    }
     /// <summary>
     /// 
     /// </summary>
@@ -45,6 +49,12 @@ namespace Coflnet.Sky.Mayor.Models
         /// </summary>
         [DataMember(Name="winner", EmitDefaultValue=false)]
         public ModelCandidate Winner { get; set; }
+
+        /// <summary>
+        /// Gets or Sets the minister
+        /// </summary>
+        [DataMember(Name="minister", EmitDefaultValue=false)]
+        public Minister Minister { get; set; }
 
         /// <summary>
         /// Gets or Sets Year

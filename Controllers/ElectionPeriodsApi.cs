@@ -9,15 +9,24 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json;
 using Coflnet.Sky.Mayor.Attributes;
 using Coflnet.Sky.Mayor.Models;
+using Coflnet.Sky.Mayor.Services;
+using System.Threading.Tasks;
 
 namespace Coflnet.Sky.Mayor.Controllers
-{ 
+{
     /// <summary>
     /// 
     /// </summary>
     [ApiController]
     public class ElectionPeriodsApiController : ControllerBase
-    { 
+    {
+        private MayorService mayorService;
+
+        public ElectionPeriodsApiController(MayorService mayorService)
+        {
+            this.mayorService = mayorService;
+        }
+
         /// <summary>
         /// Inserts election periods
         /// </summary>
@@ -30,21 +39,10 @@ namespace Coflnet.Sky.Mayor.Controllers
         [ValidateModelState]
         [SwaggerOperation("ElectionPeriodPost")]
         [SwaggerResponse(statusCode: 201, type: typeof(List<ModelElectionPeriod>), description: "Created")]
-        public virtual IActionResult ElectionPeriodPost([FromBody]List<ModelElectionPeriod> periods)
+        public virtual async Task<IActionResult> ElectionPeriodPost([FromBody] List<ModelElectionPeriod> periods)
         {
-
-            //TODO: Uncomment the next line to return response 201 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(201, default(List<ModelElectionPeriod>));
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400);
-            string exampleJson = null;
-            exampleJson = "[ {\n  \"candidates\" : [ {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  }, {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  } ],\n  \"winner\" : {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  },\n  \"year\" : 0,\n  \"start\" : \"start\",\n  \"end\" : \"end\",\n  \"id\" : \"id\"\n}, {\n  \"candidates\" : [ {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  }, {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  } ],\n  \"winner\" : {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  },\n  \"year\" : 0,\n  \"start\" : \"start\",\n  \"end\" : \"end\",\n  \"id\" : \"id\"\n} ]";
-            
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<List<ModelElectionPeriod>>(exampleJson)
-            : default(List<ModelElectionPeriod>);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            await mayorService.InsertElectionPeriods(periods);
+            return StatusCode(201);
         }
 
         /// <summary>
@@ -61,23 +59,9 @@ namespace Coflnet.Sky.Mayor.Controllers
         [ValidateModelState]
         [SwaggerOperation("ElectionPeriodRangeGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(List<ModelElectionPeriod>), description: "OK")]
-        public virtual IActionResult ElectionPeriodRangeGet([FromQuery (Name = "from")][Required()]long from, [FromQuery (Name = "to")][Required()]long to)
+        public async Task<IEnumerable<ModelElectionPeriod>> ElectionPeriodRangeGet([FromQuery(Name = "from")][Required()] long from, [FromQuery(Name = "to")][Required()] long to)
         {
-
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(List<ModelElectionPeriod>));
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400);
-            //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(404);
-            string exampleJson = null;
-            exampleJson = "[ {\n  \"candidates\" : [ {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  }, {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  } ],\n  \"winner\" : {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  },\n  \"year\" : 0,\n  \"start\" : \"start\",\n  \"end\" : \"end\",\n  \"id\" : \"id\"\n}, {\n  \"candidates\" : [ {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  }, {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  } ],\n  \"winner\" : {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  },\n  \"year\" : 0,\n  \"start\" : \"start\",\n  \"end\" : \"end\",\n  \"id\" : \"id\"\n} ]";
-            
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<List<ModelElectionPeriod>>(exampleJson)
-            : default(List<ModelElectionPeriod>);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            return await mayorService.GetElectionPeriods(from, to);
         }
 
         /// <summary>
@@ -93,23 +77,9 @@ namespace Coflnet.Sky.Mayor.Controllers
         [ValidateModelState]
         [SwaggerOperation("ElectionPeriodYearGet")]
         [SwaggerResponse(statusCode: 200, type: typeof(ModelElectionPeriod), description: "OK")]
-        public virtual IActionResult ElectionPeriodYearGet([FromRoute (Name = "year")][Required]int year)
+        public async Task<ModelElectionPeriod> ElectionPeriodYearGet([FromRoute(Name = "year")][Required] int year)
         {
-
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(ModelElectionPeriod));
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400);
-            //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(404);
-            string exampleJson = null;
-            exampleJson = "{\n  \"candidates\" : [ {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  }, {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  } ],\n  \"winner\" : {\n    \"name\" : \"name\",\n    \"perks\" : [ {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    }, {\n      \"name\" : \"name\",\n      \"description\" : \"description\"\n    } ],\n    \"key\" : \"key\"\n  },\n  \"year\" : 0,\n  \"start\" : \"start\",\n  \"end\" : \"end\",\n  \"id\" : \"id\"\n}";
-            
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<ModelElectionPeriod>(exampleJson)
-            : default(ModelElectionPeriod);
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            return await mayorService.GetElectionPeriod(year);
         }
     }
 }

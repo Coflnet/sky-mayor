@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cassandra;
 using Cassandra.Data.Linq;
@@ -29,5 +32,18 @@ public class MayorService
     public async Task<ModelElectionPeriod> GetElectionPeriod(int year)
     {
         return await electionPeriods.Where(p => p.Year == year).FirstOrDefault().ExecuteAsync();
+    }
+
+    internal async Task<IEnumerable<ModelElectionPeriod>> GetElectionPeriods(long from, long to)
+    {
+        return await electionPeriods.Where(p => p.Year >= from && p.Year <= to).ExecuteAsync();
+    }
+
+    internal async Task InsertElectionPeriods(List<ModelElectionPeriod> periods)
+    {
+        foreach (var period in periods)
+        {
+            await electionPeriods.Insert(period).ExecuteAsync();
+        }
     }
 }
