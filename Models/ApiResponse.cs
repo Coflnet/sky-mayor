@@ -46,7 +46,7 @@ public record Perk2(
     [property: JsonPropertyName("minister")] bool minister
 );
 
-public record Root(
+public record ElectionResult(
     [property: JsonPropertyName("success")] bool success,
     [property: JsonPropertyName("lastUpdated")] long lastUpdated,
     [property: JsonPropertyName("mayor")] Mayor mayor,

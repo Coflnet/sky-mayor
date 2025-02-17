@@ -14,6 +14,8 @@ using Coflnet.Sky.Mayor.Authentication;
 using Coflnet.Sky.Mayor.Filters;
 using Coflnet.Sky.Mayor.OpenApi;
 using Coflnet.Sky.Mayor.Formatters;
+using Coflnet.Sky.Mayor.Services;
+using Coflnet.Core;
 
 namespace Coflnet.Sky.Mayor
 {
@@ -46,7 +48,8 @@ namespace Coflnet.Sky.Mayor
             // Add framework services.
             services
                 // Don't need the full MVC stack for an API, see https://andrewlock.net/comparing-startup-between-the-asp-net-core-3-templates/
-                .AddControllers(options => {
+                .AddControllers(options =>
+                {
                     options.InputFormatters.Insert(0, new InputFormatterStream());
                 })
                 .AddNewtonsoftJson(opts =>
@@ -57,11 +60,14 @@ namespace Coflnet.Sky.Mayor
                         NamingStrategy = new CamelCaseNamingStrategy()
                     });
                 });
+            services.AddCoflnetCore();
+            services.AddSingleton<MayorService>();
+            services.AddHostedService<MayorUpdater>();
             services
                 .AddSwaggerGen(c =>
                 {
                     c.EnableAnnotations(enableAnnotationsForInheritance: true, enableAnnotationsForPolymorphism: true);
-                    
+
                     c.SwaggerDoc("1.0", new OpenApiInfo
                     {
                         Title = "Mayor API",
@@ -87,8 +93,8 @@ namespace Coflnet.Sky.Mayor
                     // Use [ValidateModelState] on Actions to actually validate it in C# as well!
                     c.OperationFilter<GeneratePathParamsValidationFilter>();
                 });
-                services
-                    .AddSwaggerGenNewtonsoftSupport();
+            services
+                .AddSwaggerGenNewtonsoftSupport();
         }
 
         /// <summary>
@@ -107,7 +113,7 @@ namespace Coflnet.Sky.Mayor
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseCoflnetCore();
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseSwagger(c =>

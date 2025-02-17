@@ -61,7 +61,19 @@ namespace Coflnet.Sky.Mayor.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(List<ModelElectionPeriod>), description: "OK")]
         public async Task<IEnumerable<ModelElectionPeriod>> ElectionPeriodRangeGet([FromQuery(Name = "from")][Required()] long from, [FromQuery(Name = "to")][Required()] long to)
         {
-            return await mayorService.GetElectionPeriods(from, to);
+            var startTime = DateTimeOffset.FromUnixTimeMilliseconds(from);
+            var endTime = DateTimeOffset.FromUnixTimeMilliseconds(to);
+            return await mayorService.GetElectionPeriods(GetMinecraftYear(startTime), GetMinecraftYear(endTime) );
+        }
+
+        private static int CurrentMinecraftYear()
+        {
+            return (int)((DateTime.Now - new DateTime(2019, 6, 13)).TotalDays / (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays + 1);
+        }
+
+        private static int GetMinecraftYear(DateTimeOffset date)
+        {
+            return (int)((date - new DateTime(2019, 6, 13)).TotalDays / (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays + 1);
         }
 
         /// <summary>

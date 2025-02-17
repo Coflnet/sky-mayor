@@ -28,7 +28,7 @@ namespace Coflnet.Sky.Mayor.Models
         [DataMember(Name="name", EmitDefaultValue=false)]
         public string Name { get; set; }
         [DataMember(Name="minister", EmitDefaultValue=false)]
-        public string Minister { get; set; }
+        public bool Minister { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object
