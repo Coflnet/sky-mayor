@@ -26,6 +26,15 @@ public class MayorUpdater : BackgroundService
     {
         var url = "https://api.hypixel.net/v2/resources/skyblock/election";
         var client = new HttpClient();
+        while(!stoppingToken.IsCancellationRequested)
+        {
+            await Update(url, client);
+            await Task.Delay(1000 * 60 * 60, stoppingToken);
+        }
+    }
+
+    private async Task Update(string url, HttpClient client)
+    {
         var data = await client.GetStringAsync(url);
         var electionData = JsonConvert.DeserializeObject<ElectionResult>(data);
         var electionPeriod = new ModelElectionPeriod
@@ -41,7 +50,7 @@ public class MayorUpdater : BackgroundService
                     Description = p.description,
                     Minister = p.minister
                 }).ToList(),
-                Votes = electionData.mayor.election.candidates.OrderByDescending(c=>c.votes).First().votes,
+                Votes = electionData.mayor.election.candidates.OrderByDescending(c => c.votes).First().votes,
                 Minister = electionData.mayor.minister
             },
             Candidates = electionData.mayor.election.candidates.Select(c => new ModelCandidate
