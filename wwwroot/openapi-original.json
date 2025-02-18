@@ -1,0 +1,356 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "contact" : { },
+    "description" : "This is the API for the Mayor votings",
+    "termsOfService" : "http://swagger.io/terms/",
+    "title" : "Mayor API",
+    "version" : "1.0"
+  },
+  "servers" : [ {
+    "url" : "//localhost:8080/"
+  } ],
+  "paths" : {
+    "/electionPeriod" : {
+      "post" : {
+        "description" : "Endpoint to insert election periods, should only be used to insert missing/hisotical data",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "items" : {
+                  "$ref" : "#/components/schemas/model.ElectionPeriod"
+                },
+                "type" : "array"
+              }
+            }
+          },
+          "description" : "the election periods that are going to be inserted",
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/model.ElectionPeriod"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "400" : {
+            "content" : { },
+            "description" : "Bad Request"
+          }
+        },
+        "summary" : "Inserts election periods",
+        "tags" : [ "Election periods" ],
+        "x-codegen-request-body-name" : "periods"
+      }
+    },
+    "/electionPeriod/range" : {
+      "get" : {
+        "description" : "Returns all election periods that took place in a given timespan",
+        "parameters" : [ {
+          "description" : "from The beginning of the selected timespan",
+          "in" : "query",
+          "name" : "from",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "description" : "The end of the selected timespan",
+          "in" : "query",
+          "name" : "to",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/model.ElectionPeriod"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : { },
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "content" : { },
+            "description" : "Not Found"
+          }
+        },
+        "summary" : "Get election periods by timespan",
+        "tags" : [ "Election periods" ]
+      }
+    },
+    "/electionPeriod/{year}" : {
+      "get" : {
+        "description" : "Returns the election periods that took place in a given year",
+        "parameters" : [ {
+          "description" : "the searched year",
+          "in" : "path",
+          "name" : "year",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/model.ElectionPeriod"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : { },
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "content" : { },
+            "description" : "Not Found"
+          }
+        },
+        "summary" : "Get the election period of a certain year",
+        "tags" : [ "Election periods" ]
+      }
+    },
+    "/mayor/current" : {
+      "get" : {
+        "description" : "Returns the name of the current mayor",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/model.Candidate"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : { },
+            "description" : "Bad Request"
+          }
+        },
+        "summary" : "Get the the current mayor",
+        "tags" : [ "Mayor" ]
+      }
+    },
+    "/mayor/last" : {
+      "get" : {
+        "description" : "Returns the name of the last mayor",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : { },
+            "description" : "Bad Request"
+          }
+        },
+        "summary" : "Get the name of the last mayor",
+        "tags" : [ "Mayor" ]
+      }
+    },
+    "/mayor/names" : {
+      "get" : {
+        "description" : "Returns all mayor names",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "type" : "string"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : { },
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "content" : { },
+            "description" : "Not Found"
+          }
+        },
+        "summary" : "Get names of all mayors",
+        "tags" : [ "Mayor" ]
+      }
+    },
+    "/mayor/next" : {
+      "get" : {
+        "description" : "Returns the mayor with the most votes in the current election. If there is currently no election, this returns null.",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/model.Candidate"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : { },
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "content" : { },
+            "description" : "Not Found"
+          }
+        },
+        "summary" : "Get the next mayor",
+        "tags" : [ "Mayor" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "model.Candidate" : {
+        "example" : {
+          "name" : "name",
+          "perks" : [ {
+            "name" : "name",
+            "description" : "description"
+          }, {
+            "name" : "name",
+            "description" : "description"
+          } ],
+          "key" : "key"
+        },
+        "properties" : {
+          "key" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "perks" : {
+            "items" : {
+              "$ref" : "#/components/schemas/model.Perk"
+            },
+            "type" : "array"
+          }
+        },
+        "type" : "object"
+      },
+      "model.ElectionPeriod" : {
+        "example" : {
+          "candidates" : [ {
+            "name" : "name",
+            "perks" : [ {
+              "name" : "name",
+              "description" : "description"
+            }, {
+              "name" : "name",
+              "description" : "description"
+            } ],
+            "key" : "key"
+          }, {
+            "name" : "name",
+            "perks" : [ {
+              "name" : "name",
+              "description" : "description"
+            }, {
+              "name" : "name",
+              "description" : "description"
+            } ],
+            "key" : "key"
+          } ],
+          "winner" : {
+            "name" : "name",
+            "perks" : [ {
+              "name" : "name",
+              "description" : "description"
+            }, {
+              "name" : "name",
+              "description" : "description"
+            } ],
+            "key" : "key"
+          },
+          "year" : 0,
+          "start" : "start",
+          "end" : "end",
+          "id" : "id"
+        },
+        "properties" : {
+          "candidates" : {
+            "items" : {
+              "$ref" : "#/components/schemas/model.Candidate"
+            },
+            "type" : "array"
+          },
+          "end" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "string"
+          },
+          "winner" : {
+            "$ref" : "#/components/schemas/model.Candidate"
+          },
+          "year" : {
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "model.Perk" : {
+        "example" : {
+          "name" : "name",
+          "description" : "description"
+        },
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      }
+    }
+  },
+  "x-original-swagger-version" : "2.0"
+}

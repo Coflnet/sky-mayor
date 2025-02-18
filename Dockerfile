@@ -1,17 +1,30 @@
-FROM registry.suse.com/bci/golang:1.23 as builder
+# Container we use for final publish
+FROM mcr.microsoft.com/dotnet/core/aspnet:8.0-buster-slim AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
 
-WORKDIR /build
+# Build container
+FROM mcr.microsoft.com/dotnet/core/sdk:8.0-buster AS build
 
-COPY go.mod go.sum ./
+# Copy the code into the container
+WORKDIR /src
+COPY ["src/Coflnet.Sky.Mayor/Coflnet.Sky.Mayor.csproj", "Coflnet.Sky.Mayor/"]
 
-RUN go mod download
+# NuGet restore
+RUN dotnet restore "Coflnet.Sky.Mayor/Coflnet.Sky.Mayor.csproj"
+COPY ["src/Coflnet.Sky.Mayor/", "Coflnet.Sky.Mayor/"]
 
-COPY . .
+# Build the API
+WORKDIR "Coflnet.Sky.Mayor"
+RUN dotnet build "Coflnet.Sky.Mayor.csproj" -c Release -o /app/build
 
-RUN go build -o ./app cmd/sky-mayor/main.go
+# Publish it
+FROM build AS publish
+RUN dotnet publish "Coflnet.Sky.Mayor.csproj" -c Release -o /app/publish
 
-FROM registry.suse.com/bci/bci-micro:15.6
-
-COPY --from=builder /build/app /app
-
-ENTRYPOINT ["/app"]
+# Make the final image for publishing
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Coflnet.Sky.Mayor.dll"]
