@@ -1,5 +1,3 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
 # Container we use for final publish
 FROM mcr.microsoft.com/dotnet/core/aspnet:8.0-buster-slim AS base
 WORKDIR /app
