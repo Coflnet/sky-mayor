@@ -1,9 +1,5 @@
-using System.IO;
-using System.Linq;
-using Coflnet.Sky.Mayor.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 
 namespace Coflnet.Sky.Mayor
 {
@@ -18,9 +14,6 @@ namespace Coflnet.Sky.Mayor
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
-            var all = JsonConvert.DeserializeObject<ModelElectionPeriod[]>(File.ReadAllText("previous.json"));
-            var options = all.SelectMany(c => c.Candidates?.SelectMany(c => c.Perks).Select(p => p.Name) ?? []).Distinct().ToList();
-            File.WriteAllText("options.json", JsonConvert.SerializeObject(options));
             CreateHostBuilder(args).Build().Run();
         }
 
