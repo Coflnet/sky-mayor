@@ -47,9 +47,9 @@ public class MayorService
     {
         var ids = Enumerable.Range(from, to - from + 1);
         var all = new List<ModelElectionPeriod>();
-        foreach (var item in all.Batch(100))
+        foreach (var item in ids.Batch(100).ToList())
         {
-            var data = await electionPeriods.Where(p => ids.Contains(p.Year)).ExecuteAsync();
+            var data = (await electionPeriods.Where(p => item.Contains(p.Year)).ExecuteAsync()).ToList();
             all.AddRange(data.Select(ConvertFromDb()));
         }
         return all;
