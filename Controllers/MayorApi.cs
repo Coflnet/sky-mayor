@@ -40,8 +40,8 @@ namespace Coflnet.Sky.Mayor.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(ModelCandidate), description: "OK")]
         public virtual async Task<ModelCandidate> MayorCurrentGet()
         {
-            var currentElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear());
-            return currentElection.Winner;
+            var currentElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear() -1);
+            return currentElection?.Winner;
         }
 
         private static int CurrentMinecraftYear()
@@ -62,7 +62,7 @@ namespace Coflnet.Sky.Mayor.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(string), description: "OK")]
         public async Task<string> MayorLastGet()
         {
-            var lastElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear() - 1);
+            var lastElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear() - 2);
             return lastElection.Winner.Name;
         }
 
