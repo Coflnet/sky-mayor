@@ -11,6 +11,7 @@ using Coflnet.Sky.Mayor.Attributes;
 using Coflnet.Sky.Mayor.Models;
 using Coflnet.Sky.Mayor.Services;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Coflnet.Sky.Mayor.Controllers
 {
@@ -63,12 +64,21 @@ namespace Coflnet.Sky.Mayor.Controllers
         {
             var startTime = DateTimeOffset.FromUnixTimeMilliseconds(from);
             var endTime = DateTimeOffset.FromUnixTimeMilliseconds(to);
-            return await mayorService.GetElectionPeriods(GetMinecraftYear(startTime), GetMinecraftYear(endTime) );
+            return (await mayorService.GetElectionPeriods(GetMinecraftYear(startTime), GetMinecraftYear(endTime) )).Select(ep=>{
+                ep.Start = GetTimeOfMinecraftYear(ep.Year).ToString();
+                ep.End = GetTimeOfMinecraftYear(ep.Year + 1).ToString();
+                return ep;
+            });
         }
 
         private static int CurrentMinecraftYear()
         {
             return (int)((DateTime.Now - new DateTime(2019, 6, 13)).TotalDays / (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays + 1);
+        }
+
+        private static DateTime GetTimeOfMinecraftYear(int year)
+        {
+            return new DateTime(2019, 6, 13).AddDays((year - 1) * (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays);
         }
 
         private static int GetMinecraftYear(DateTimeOffset date)
