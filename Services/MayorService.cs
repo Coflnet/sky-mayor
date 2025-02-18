@@ -36,7 +36,7 @@ public class MayorService
     public async Task<ModelElectionPeriod> GetElectionPeriod(int year)
     {
         var element = await electionPeriods.Where(p => p.Year == year).FirstOrDefault().ExecuteAsync();
-        if(element == null)
+        if (element == null)
         {
             return null;
         }
@@ -45,7 +45,7 @@ public class MayorService
 
     internal async Task<IEnumerable<ModelElectionPeriod>> GetElectionPeriods(int from, int to)
     {
-        var ids = Enumerable.Range(from, to - from + 1);
+        var ids = Enumerable.Range(from - 1, to - from + 1);
         var all = new List<ModelElectionPeriod>();
         foreach (var item in ids.Batch(100).ToList())
         {

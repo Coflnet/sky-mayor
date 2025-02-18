@@ -66,7 +66,7 @@ namespace Coflnet.Sky.Mayor.Controllers
             var endTime = DateTimeOffset.FromUnixTimeMilliseconds(to);
             return (await mayorService.GetElectionPeriods(GetMinecraftYear(startTime), GetMinecraftYear(endTime))).Select(ep =>
             {
-                ep.Start = GetTimeOfMinecraftYear(ep.Year + 1).ToString();
+                ep.Start = new DateTimeOffset(GetTimeOfMinecraftYear(ep.Year + 1)).ToString();
                 ep.End = GetTimeOfMinecraftYear(ep.Year + 2).ToString();
                 return ep;
             });
