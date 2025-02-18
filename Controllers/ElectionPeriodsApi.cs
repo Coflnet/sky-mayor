@@ -64,9 +64,10 @@ namespace Coflnet.Sky.Mayor.Controllers
         {
             var startTime = DateTimeOffset.FromUnixTimeMilliseconds(from);
             var endTime = DateTimeOffset.FromUnixTimeMilliseconds(to);
-            return (await mayorService.GetElectionPeriods(GetMinecraftYear(startTime), GetMinecraftYear(endTime) )).Select(ep=>{
-                ep.Start = GetTimeOfMinecraftYear(ep.Year).ToString();
-                ep.End = GetTimeOfMinecraftYear(ep.Year + 1).ToString();
+            return (await mayorService.GetElectionPeriods(GetMinecraftYear(startTime), GetMinecraftYear(endTime))).Select(ep =>
+            {
+                ep.Start = GetTimeOfMinecraftYear(ep.Year + 1).ToString();
+                ep.End = GetTimeOfMinecraftYear(ep.Year + 2).ToString();
                 return ep;
             });
         }
@@ -78,7 +79,7 @@ namespace Coflnet.Sky.Mayor.Controllers
 
         private static DateTime GetTimeOfMinecraftYear(int year)
         {
-            return new DateTime(2019, 6, 13).AddDays((year - 1) * (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays);
+            return new DateTime(2019, 6, 13, 0, 0, 0, DateTimeKind.Utc).AddDays((year - 1) * (TimeSpan.FromDays(5) + TimeSpan.FromHours(4)).TotalDays) - TimeSpan.FromHours(0.75);
         }
 
         private static int GetMinecraftYear(DateTimeOffset date)
