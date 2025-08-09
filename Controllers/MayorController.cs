@@ -19,11 +19,11 @@ namespace Coflnet.Sky.Mayor.Controllers
     /// 
     /// </summary>
     [ApiController]
-    public class MayorApiController : ControllerBase
+    public class MayorController : ControllerBase
     {
         public MayorService mayorService;
 
-        public MayorApiController(MayorService mayorService)
+        public MayorController(MayorService mayorService)
         {
             this.mayorService = mayorService;
         }

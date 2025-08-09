@@ -1,5 +1,5 @@
 # generates the c# client
-VERSION=0.4.0
+VERSION=0.4.1
 NAME=Coflnet.Sky.Mayor.Client
 
 docker run --rm -v "${PWD}:/local" --network host -u $(id -u ${USER}):$(id -g ${USER})  openapitools/openapi-generator-cli generate \
@@ -19,4 +19,4 @@ sed -i '34i    <None Include="../../../../README.md" Pack="true" PackagePath="\"
 dotnet pack
 cp src/$NAME/bin/Release/$NAME.*.nupkg ..
 dotnet nuget push ../$NAME.$VERSION.nupkg --api-key $NUGET_API_KEY --source "nuget.org" --skip-duplicate
-
+rm *.sln
