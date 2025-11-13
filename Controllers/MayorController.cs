@@ -40,6 +40,13 @@ namespace Coflnet.Sky.Mayor.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(ModelCandidate), description: "OK")]
         public virtual async Task<ModelCandidate> MayorCurrentGet()
         {
+            // Prefer the in-memory current leader if available (updated by the background updater)
+            var inMem = mayorService.GetCurrentLeader();
+            if (inMem != null)
+            {
+                return inMem;
+            }
+
             var currentElection = await mayorService.GetElectionPeriod(CurrentMinecraftYear() -1);
             return currentElection?.Winner;
         }

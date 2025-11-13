@@ -17,10 +17,13 @@ public class MayorService
 {
     private readonly ILogger<MayorService> _logger;
     private readonly Table<ElectionStorage> electionPeriods;
+    private readonly object currentLock = new object();
+    private ModelElectionPeriod currentElection = null;
 
     public MayorService(ILogger<MayorService> logger, ISession session)
     {
         _logger = logger;
+        logger.LogInformation("Setting up MayorService database tables");
         var mapping = new MappingConfiguration().Define(
             new Map<ElectionStorage>()
                 .TableName("election_periods")
@@ -76,6 +79,53 @@ public class MayorService
                 CandidatesJson = JsonConvert.SerializeObject(period.Candidates)
             }).ExecuteAsync();
         }
+    }
+
+    internal void SetCurrentElection(Current current)
+    {
+        // Map the incoming API `Current` record to our internal ModelElectionPeriod
+        if (current is null)
+        {
+            lock (currentLock)
+            {
+                currentElection = null;
+            }
+            return;
+        }
+
+        var mapped = new ModelElectionPeriod
+        {
+            Year = current.year,
+            Candidates = current.candidates?.Select(c => new ModelCandidate
+            {
+                Key = c.key,
+                Name = c.name,
+                Perks = c.perks?.Select(p => new ModelPerk
+                {
+                    Name = p.name,
+                    Description = p.description,
+                    Minister = p.minister
+                }).ToList(),
+                Votes = c.votes
+            }).ToList()
+        };
+
+        lock (currentLock)
+        {
+            currentElection = mapped;
+        }
+    }
+
+    // Returns the current leader from the in-memory current election (or null if none available)
+    public ModelCandidate GetCurrentLeader()
+    {
+        ModelElectionPeriod ce;
+        lock (currentLock)
+        {
+            ce = currentElection;
+        }
+        if (ce == null || ce.Candidates == null || ce.Candidates.Count == 0) return null;
+        return ce.Candidates.OrderByDescending(c => c.Votes).FirstOrDefault();
     }
 
     public class ElectionStorage

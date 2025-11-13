@@ -25,8 +25,9 @@ public class MayorUpdater : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var url = "https://api.hypixel.net/v2/resources/skyblock/election";
+        logger.LogInformation("Starting mayor data update");
         var client = new HttpClient();
-        while(!stoppingToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
         {
             await Update(url, client);
             await Task.Delay(1000 * 60 * 60, stoppingToken);
@@ -67,6 +68,7 @@ public class MayorUpdater : BackgroundService
             }).ToList(),
         };
         await mayorService.InsertElectionPeriods(new List<ModelElectionPeriod> { electionPeriod });
+        mayorService.SetCurrentElection(electionData.current);
         logger.LogInformation("Updated mayor data for year {Year} current election winner {leader}", electionPeriod.Year, electionPeriod.Candidates?.OrderByDescending(c => c.Votes).FirstOrDefault()?.Name);
     }
 }
