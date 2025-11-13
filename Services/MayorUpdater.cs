@@ -67,5 +67,6 @@ public class MayorUpdater : BackgroundService
             }).ToList(),
         };
         await mayorService.InsertElectionPeriods(new List<ModelElectionPeriod> { electionPeriod });
+        logger.LogInformation("Updated mayor data for year {Year} current election winner {leader}", electionPeriod.Year, electionPeriod.Candidates?.OrderByDescending(c => c.Votes).FirstOrDefault()?.Name);
     }
 }
