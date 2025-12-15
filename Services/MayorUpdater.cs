@@ -38,27 +38,45 @@ public class MayorUpdater : BackgroundService
     {
         var data = await client.GetStringAsync(url);
         var electionData = JsonConvert.DeserializeObject<ElectionResult>(data);
+        if (electionData?.mayor == null)
+        {
+            logger.LogWarning("No active mayor found in API response. Skipping historic mayor insertion.");
+            try
+            {
+                mayorService.SetCurrentElection(electionData?.current);
+            }
+            catch (System.Exception ex)
+            {
+                logger.LogError(ex, "Failed to set current election when mayor data was missing");
+            }
+            return;
+        }
+
+        var mayor = electionData.mayor;
+        var candidates = mayor.election?.candidates ?? new List<Candidate>();
+        var perks = mayor.perks ?? new List<Perk>();
+
         var electionPeriod = new ModelElectionPeriod
         {
-            Year = electionData.mayor.election.year,
+            Year = mayor.election?.year ?? 0,
             Winner = new ModelWinner
             {
-                Key = electionData.mayor.key,
-                Name = electionData.mayor.name,
-                Perks = electionData.mayor.perks.Select(p => new ModelPerk
+                Key = mayor.key,
+                Name = mayor.name,
+                Perks = perks.Select(p => new ModelPerk
                 {
                     Name = p.name,
                     Description = p.description,
                     Minister = p.minister
                 }).ToList(),
-                Votes = electionData.mayor.election.candidates.OrderByDescending(c => c.votes).First().votes,
-                Minister = electionData.mayor.minister
+                Votes = candidates.OrderByDescending(c => c.votes).FirstOrDefault()?.votes ?? 0,
+                Minister = mayor.minister
             },
-            Candidates = electionData.mayor.election.candidates.Select(c => new ModelCandidate
+            Candidates = candidates.Select(c => new ModelCandidate
             {
                 Key = c.key,
                 Name = c.name,
-                Perks = c.perks.Select(p => new ModelPerk
+                Perks = (c.perks ?? new List<Perk>()).Select(p => new ModelPerk
                 {
                     Name = p.name,
                     Description = p.description,
@@ -67,8 +85,9 @@ public class MayorUpdater : BackgroundService
                 Votes = c.votes
             }).ToList(),
         };
+
         await mayorService.InsertElectionPeriods(new List<ModelElectionPeriod> { electionPeriod });
         mayorService.SetCurrentElection(electionData.current);
-        logger.LogInformation("Updated mayor data for year {Year} current election winner {leader}", electionPeriod.Year, electionData.current.candidates?.OrderByDescending(c => c.votes).FirstOrDefault()?.name);
+        logger.LogInformation("Updated mayor data for year {Year} current election winner {leader}", electionPeriod.Year, electionData.current?.candidates?.OrderByDescending(c => c.votes).FirstOrDefault()?.name);
     }
 }
