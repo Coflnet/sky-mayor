@@ -49,15 +49,27 @@ public class MayorService
 
     internal async Task<IEnumerable<ModelElectionPeriod>> GetElectionPeriods(int from, int to)
     {
-        var ids = Enumerable.Range(from - 1, to - from + 1);
-        var all = new List<ModelElectionPeriod>();
-        foreach (var item in ids.Batch(100).ToList())
+        var count = to - from + 1;
+        if (count > 300)
         {
-            var itemList = item.ToList();
-            var data = (await electionPeriods.Where(p => itemList.Contains(p.Year)).ExecuteAsync()).ToList();
-            all.AddRange(data.Select(ConvertFromDb()));
+            var all = (await electionPeriods.ExecuteAsync())
+                .Where(p => p.Year >= from - 1 && p.Year <= to)
+                .Select(ConvertFromDb())
+                .ToList();
+            return all;
         }
-        return all;
+        else
+        {
+            var ids = Enumerable.Range(from - 1, count);
+            var all = new List<ModelElectionPeriod>();
+            foreach (var item in ids.Batch(100).ToList())
+            {
+                var itemList = item.ToList();
+                var data = (await electionPeriods.Where(p => itemList.Contains(p.Year)).ExecuteAsync()).ToList();
+                all.AddRange(data.Select(ConvertFromDb()));
+            }
+            return all;
+        }
     }
 
     private static Func<ElectionStorage, ModelElectionPeriod> ConvertFromDb()
