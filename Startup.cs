@@ -71,7 +71,7 @@ namespace Coflnet.Sky.Mayor
                     c.SwaggerDoc("1.0", new OpenApiInfo
                     {
                         Title = "Mayor API",
-                        Description = "Mayor API (ASP.NET Core 8.0)",
+                        Description = "Mayor API (ASP.NET Core 10.0)",
                         TermsOfService = new Uri("http://swagger.io/terms/"),
                         Contact = new OpenApiContact
                         {

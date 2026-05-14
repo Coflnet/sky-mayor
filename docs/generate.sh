@@ -5,7 +5,7 @@ NAME=Coflnet.Sky.Mayor.Client
 docker run --rm -v "${PWD}:/local" --network host -u $(id -u ${USER}):$(id -g ${USER})  openapitools/openapi-generator-cli generate \
 -i http://0.0.0.0:8080/api/openapi/v1/openapi.json \
 -g csharp \
--o /local/out --additional-properties=packageName=$NAME,packageVersion=$VERSION,licenseId=MIT,targetFramework=net8.0,library=restsharp
+-o /local/out --additional-properties=packageName=$NAME,packageVersion=$VERSION,licenseId=MIT,targetFramework=net10.0,library=restsharp
 
 
 cd out
