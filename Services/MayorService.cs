@@ -53,7 +53,8 @@ public class MayorService
         var all = new List<ModelElectionPeriod>();
         foreach (var item in ids.Batch(100).ToList())
         {
-            var data = (await electionPeriods.Where(p => item.Contains(p.Year)).ExecuteAsync()).ToList();
+            var itemList = item.ToList();
+            var data = (await electionPeriods.Where(p => itemList.Contains(p.Year)).ExecuteAsync()).ToList();
             all.AddRange(data.Select(ConvertFromDb()));
         }
         return all;
