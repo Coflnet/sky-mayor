@@ -19,6 +19,7 @@ public class MayorService
     private readonly Table<ElectionStorage> electionPeriods;
     private readonly object currentLock = new object();
     private ModelElectionPeriod currentElection = null;
+    private ModelCandidate currentMayor = null;
 
     public MayorService(ILogger<MayorService> logger, ISession session)
     {
@@ -81,9 +82,25 @@ public class MayorService
         }
     }
 
+    internal void SetCurrentMayor(Models.Mayor mayor)
+    {
+        lock (currentLock)
+        {
+            currentMayor = mayor == null
+                ? null
+                : new ModelWinner
+                {
+                    Key = mayor.key,
+                    Name = mayor.name,
+                    Perks = MapPerks(mayor.perks),
+                    Votes = mayor.election?.candidates?.OrderByDescending(candidate => candidate.votes).FirstOrDefault()?.votes ?? 0,
+                    Minister = mayor.minister
+                };
+        }
+    }
+
     internal void SetCurrentElection(Current current)
     {
-        // Map the incoming API `Current` record to our internal ModelElectionPeriod
         if (current is null)
         {
             lock (currentLock)
@@ -96,18 +113,7 @@ public class MayorService
         var mapped = new ModelElectionPeriod
         {
             Year = current.year,
-            Candidates = current.candidates?.Select(c => new ModelCandidate
-            {
-                Key = c.key,
-                Name = c.name,
-                Perks = c.perks?.Select(p => new ModelPerk
-                {
-                    Name = p.name,
-                    Description = p.description,
-                    Minister = p.minister
-                }).ToList(),
-                Votes = c.votes
-            }).ToList()
+            Candidates = current.candidates?.Select(MapCandidate).ToList()
         };
 
         lock (currentLock)
@@ -116,7 +122,14 @@ public class MayorService
         }
     }
 
-    // Returns the current leader from the in-memory current election (or null if none available)
+    internal ModelCandidate GetCurrentMayor()
+    {
+        lock (currentLock)
+        {
+            return currentMayor;
+        }
+    }
+
     public ModelCandidate GetCurrentLeader()
     {
         ModelElectionPeriod ce;
@@ -126,6 +139,32 @@ public class MayorService
         }
         if (ce == null || ce.Candidates == null || ce.Candidates.Count == 0) return null;
         return ce.Candidates.OrderByDescending(c => c.Votes).FirstOrDefault();
+    }
+
+    private static ModelCandidate MapCandidate(Candidate candidate)
+    {
+        if (candidate == null)
+        {
+            return null;
+        }
+
+        return new ModelCandidate
+        {
+            Key = candidate.key,
+            Name = candidate.name,
+            Perks = MapPerks(candidate.perks),
+            Votes = candidate.votes
+        };
+    }
+
+    private static List<ModelPerk> MapPerks(IEnumerable<Perk> perks)
+    {
+        return perks?.Select(perk => new ModelPerk
+        {
+            Name = perk.name,
+            Description = perk.description,
+            Minister = perk.minister
+        }).ToList() ?? new List<ModelPerk>();
     }
 
     public class ElectionStorage
