@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Cassandra;
 using Cassandra.Data.Linq;
@@ -20,6 +22,16 @@ public class MayorService
     private readonly object currentLock = new object();
     private ModelElectionPeriod currentElection = null;
     private ModelCandidate currentMayor = null;
+
+    /// <summary>
+    /// In memory index of all election periods keyed by year.
+    /// Holds only the lightweight data needed by the range endpoint
+    /// (winner + perk names, no candidates and no perk descriptions),
+    /// which is tiny because only about a dozen mayors rotate.
+    /// </summary>
+    private readonly ConcurrentDictionary<int, ModelElectionPeriod> cache = new();
+    private volatile bool cacheLoaded = false;
+    private readonly SemaphoreSlim loadLock = new(1, 1);
 
     public MayorService(ILogger<MayorService> logger, ISession session)
     {
@@ -49,27 +61,93 @@ public class MayorService
 
     internal async Task<IEnumerable<ModelElectionPeriod>> GetElectionPeriods(int from, int to)
     {
-        var count = to - from + 1;
-        if (count > 300)
+        if (!cacheLoaded)
         {
-            var all = (await electionPeriods.ExecuteAsync())
-                .Where(p => p.Year >= from - 1 && p.Year <= to)
-                .Select(ConvertFromDb())
-                .ToList();
-            return all;
+            await LoadCache();
         }
-        else
+
+        // years from-1 .. to inclusive, served entirely from memory
+        var result = new List<ModelElectionPeriod>();
+        for (var year = from - 1; year <= to; year++)
         {
-            var ids = Enumerable.Range(from - 1, count);
-            var all = new List<ModelElectionPeriod>();
-            foreach (var item in ids.Batch(100).ToList())
+            if (cache.TryGetValue(year, out var period))
             {
-                var itemList = item.ToList();
-                var data = (await electionPeriods.Where(p => itemList.Contains(p.Year)).ExecuteAsync()).ToList();
-                all.AddRange(data.Select(ConvertFromDb()));
+                result.Add(CloneForResponse(period));
             }
-            return all;
         }
+        return result;
+    }
+
+    /// <summary>
+    /// Loads every election period into the in memory cache. Runs a single full
+    /// table scan; it is cheap because there are only a few hundred small rows.
+    /// Safe to call multiple times, only the first call hits the database.
+    /// </summary>
+    public async Task LoadCache()
+    {
+        if (cacheLoaded)
+        {
+            return;
+        }
+        await loadLock.WaitAsync();
+        try
+        {
+            if (cacheLoaded)
+            {
+                return;
+            }
+            var all = (await electionPeriods.ExecuteAsync()).Select(ConvertFromDb());
+            foreach (var period in all)
+            {
+                cache[period.Year] = ToLightweight(period);
+            }
+            cacheLoaded = true;
+            _logger.LogInformation("Loaded {Count} election periods into memory", cache.Count);
+        }
+        finally
+        {
+            loadLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Strips an election period down to the data the range endpoint needs:
+    /// the winner with perk names, without candidates or perk descriptions.
+    /// </summary>
+    private static ModelElectionPeriod ToLightweight(ModelElectionPeriod period)
+    {
+        return new ModelElectionPeriod
+        {
+            Year = period.Year,
+            Candidates = null,
+            Winner = period.Winner == null ? null : new ModelWinner
+            {
+                Key = period.Winner.Key,
+                Name = period.Winner.Name,
+                Votes = period.Winner.Votes,
+                Minister = period.Winner.Minister,
+                Perks = period.Winner.Perks?.Select(p => new ModelPerk
+                {
+                    Name = p.Name,
+                    Minister = p.Minister
+                }).ToList()
+            }
+        };
+    }
+
+    /// <summary>
+    /// Returns a fresh wrapper so the caller can set Start/End without mutating
+    /// the shared cached instance. The winner is immutable in the response so it
+    /// is shared by reference.
+    /// </summary>
+    private static ModelElectionPeriod CloneForResponse(ModelElectionPeriod period)
+    {
+        return new ModelElectionPeriod
+        {
+            Year = period.Year,
+            Candidates = null,
+            Winner = period.Winner
+        };
     }
 
     private static Func<ElectionStorage, ModelElectionPeriod> ConvertFromDb()
@@ -92,6 +170,8 @@ public class MayorService
                 MayorJson = JsonConvert.SerializeObject(period.Winner),
                 CandidatesJson = JsonConvert.SerializeObject(period.Candidates)
             }).ExecuteAsync();
+            // keep the in memory index in sync so the range endpoint stays fast and current
+            cache[period.Year] = ToLightweight(period);
         }
     }
 

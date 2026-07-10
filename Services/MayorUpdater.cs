@@ -39,6 +39,15 @@ public class MayorUpdater : BackgroundService
             SlowUpdateInterval);
         using var client = new HttpClient();
 
+        try
+        {
+            await mayorService.LoadCache();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to warm the in memory election period cache on startup");
+        }
+
         while (!stoppingToken.IsCancellationRequested)
         {
             await Update(ElectionUrl, client, stoppingToken);
