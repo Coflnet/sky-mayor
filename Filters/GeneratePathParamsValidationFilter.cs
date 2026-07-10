@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Coflnet.Sky.Mayor.Filters
@@ -22,7 +22,7 @@ namespace Coflnet.Sky.Mayor.Filters
 
             foreach (var par in pars)
             {
-                var openapiParam = operation.Parameters.SingleOrDefault(p => p.Name == par.Name);
+                var openapiParam = operation.Parameters.SingleOrDefault(p => p.Name == par.Name) as OpenApiParameter;
 
                 var attributes = ((ControllerParameterDescriptor)par.ParameterDescriptor).ParameterInfo.CustomAttributes.ToList();
 
@@ -31,6 +31,8 @@ namespace Coflnet.Sky.Mayor.Filters
                 // Basically OpenAPI v3 body parameters are split out into RequestBody and the properties have moved to schema
                 if (attributes.Any() && openapiParam != null)
                 {
+                    var schema = openapiParam.Schema as OpenApiSchema;
+
                     // Required - [Required]
                     var requiredAttr = attributes.FirstOrDefault(p => p.AttributeType == typeof(RequiredAttribute));
                     if (requiredAttr != null)
@@ -43,7 +45,7 @@ namespace Coflnet.Sky.Mayor.Filters
                     if (regexAttr != null)
                     {
                         var regex = (string)regexAttr.ConstructorArguments[0].Value;
-                        openapiParam.Schema.Pattern = regex;
+                        schema.Pattern = regex;
                     }
 
                     // String Length [StringLength]
@@ -72,12 +74,12 @@ namespace Coflnet.Sky.Mayor.Filters
 
                     if (minLength != null)
                     {
-                        openapiParam.Schema.MinLength = minLength;
+                        schema.MinLength = minLength;
                     }
 
                     if (maxLength != null)
                     {
-                        openapiParam.Schema.MaxLength = maxLength;
+                        schema.MaxLength = maxLength;
                     }
 
                     // Range [Range]
@@ -87,8 +89,8 @@ namespace Coflnet.Sky.Mayor.Filters
                         var rangeMin = (int)rangeAttr.ConstructorArguments[0].Value;
                         var rangeMax = (int)rangeAttr.ConstructorArguments[1].Value;
 
-                        openapiParam.Schema.MinLength = rangeMin;
-                        openapiParam.Schema.MaxLength = rangeMax;
+                        schema.MinLength = rangeMin;
+                        schema.MaxLength = rangeMax;
                     }
                 }
             }
