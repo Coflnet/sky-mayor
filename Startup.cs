@@ -16,6 +16,9 @@ using Coflnet.Sky.Mayor.OpenApi;
 using Coflnet.Sky.Mayor.Formatters;
 using Coflnet.Sky.Mayor.Services;
 using Coflnet.Core;
+using Coflnet.Core.Security;
+using Coflnet.Sky.Mayor.Infrastructure;
+using Microsoft.AspNetCore.Http;
 
 namespace Coflnet.Sky.Mayor
 {
@@ -61,6 +64,9 @@ namespace Coflnet.Sky.Mayor
                     });
                 });
             services.AddCoflnetCore();
+            if (Configuration.GetSection("HTTPS:TLS").Exists())
+                services.AddKeyedSingleton<PemTlsOptions>("HTTPS", (_, _) =>
+                    PemTlsOptions.FromConfiguration(Configuration.GetSection("HTTPS:TLS"), serverCertificate: true));
             services.AddSingleton<MayorService>();
             services.AddHostedService<MayorUpdater>();
             services
@@ -134,6 +140,18 @@ namespace Coflnet.Sky.Mayor
             app.UseEndpoints(endpoints =>
                 {
                     endpoints.MapControllers();
+                    endpoints.MapGet("/health/ready", async context =>
+                    {
+                        try
+                        {
+                            await DatabaseReadiness.CheckAsync(context.RequestServices, context.RequestAborted);
+                            context.Response.StatusCode = StatusCodes.Status200OK;
+                        }
+                        catch (System.Exception)
+                        {
+                            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                        }
+                    });
                 });
         }
     }

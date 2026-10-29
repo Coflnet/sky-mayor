@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
+using Coflnet.Sky.Mayor.Infrastructure;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
 namespace Coflnet.Sky.Mayor
@@ -12,9 +14,11 @@ namespace Coflnet.Sky.Mayor
         /// Main
         /// </summary>
         /// <param name="args"></param>
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            using var host = CreateHostBuilder(args).Build();
+            await DatabaseReadiness.CheckAsync(host.Services);
+            await host.RunAsync();
         }
 
         /// <summary>
@@ -27,7 +31,7 @@ namespace Coflnet.Sky.Mayor
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
-                              .UseUrls("http://0.0.0.0:8080/");
+                              .ConfigureTransportSecurity();
                 });
     }
 }

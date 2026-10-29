@@ -3,6 +3,7 @@ WORKDIR /build/sky
 COPY Coflnet.Sky.Mayor.csproj Coflnet.Sky.Mayor.csproj
 RUN dotnet restore
 COPY . .
+RUN dotnet test
 RUN dotnet publish -c release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
@@ -10,7 +11,9 @@ WORKDIR /app
 
 COPY --from=build /app .
 
-ENV ASPNETCORE_URLS=http://+:8000
+ENV ASPNETCORE_URLS=http://+:8080 \
+    HOME=/tmp \
+    TMPDIR=/tmp
 
 RUN useradd --uid $(shuf -i 2000-65000 -n 1) app-usr
 USER app-usr
